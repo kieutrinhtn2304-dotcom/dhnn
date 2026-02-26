@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trắc nghiệm định hướng nghề nghiệp</title>
+<title>Bài trắc nghiệm định hướng nghề nghiệp</title>
 
 <style>
 body{
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg,#fbc2eb,#a6c1ee);
+    font-family: Arial, sans-serif;
+    background:#f4f6f9;
     margin:0;
     padding:0;
 }
@@ -17,30 +17,44 @@ body{
     max-width:900px;
     margin:40px auto;
     background:white;
-    padding:30px;
-    border-radius:20px;
-    box-shadow:0 15px 30px rgba(0,0,0,0.2);
+    padding:40px;
+    border-radius:8px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
 }
 
-h1{text-align:center;}
+h1{
+    text-align:center;
+    margin-bottom:30px;
+}
 
 .question{
     margin-bottom:25px;
+    padding-bottom:15px;
+    border-bottom:1px solid #ddd;
+}
+
+.confirm{
+    font-size:14px;
+    color:#555;
+    margin-top:5px;
+    display:none;
 }
 
 button{
     display:block;
     margin:30px auto;
     padding:12px 30px;
-    border:none;
-    background:#ff6b81;
-    color:white;
     font-size:16px;
-    border-radius:10px;
+    border:none;
+    background:#2c3e50;
+    color:white;
     cursor:pointer;
+    border-radius:5px;
 }
 
-button:hover{background:#ff4757;}
+button:hover{
+    background:#1a252f;
+}
 
 #loading{
     display:none;
@@ -50,7 +64,8 @@ button:hover{background:#ff4757;}
 
 .progress{
     width:100%;
-    background:#eee;
+    background:#ddd;
+    height:20px;
     border-radius:10px;
     overflow:hidden;
     margin-top:10px;
@@ -58,27 +73,21 @@ button:hover{background:#ff4757;}
 
 .progress-bar{
     width:0%;
-    height:20px;
-    background:#ff6b81;
-    transition:width 3s linear;
+    height:100%;
+    background:#2c3e50;
+    transition:width 4s linear;
 }
 
-#memeBox{
+#resultSection{
     display:none;
     text-align:center;
-    margin-top:20px;
+    margin-top:30px;
 }
 
-#memeBox img{
-    width:200px;
-    border-radius:15px;
-}
-
-#result{
-    text-align:center;
-    font-size:20px;
-    font-weight:bold;
-    margin-top:20px;
+img{
+    max-width:250px;
+    margin-top:15px;
+    border-radius:10px;
 }
 </style>
 </head>
@@ -86,60 +95,109 @@ button:hover{background:#ff4757;}
 <body>
 
 <div class="container">
-<h1>🐱 Trắc nghiệm định hướng nghề nghiệp siêu nghiêm túc 🐱</h1>
+
+<h1>Bài trắc nghiệm định hướng nghề nghiệp</h1>
 
 <form id="quiz"></form>
 
-<button onclick="showMeme()">Xem kết quả ✨</button>
-
-<div id="memeBox">
-    <p><b>Bạn đã chắc chưa :)</b></p>
-    <img src="https://i.imgur.com/7yUvePI.jpeg">
-    <br><br>
-    <button onclick="calculateResult()">Chắc rồi 😤</button>
-</div>
+<button type="button" onclick="submitQuiz()">Xem kết quả</button>
 
 <div id="loading">
-    <p>Đang phân tích tính cách của bạn...</p>
+    <p>Hệ thống đang phân tích xu hướng nghề nghiệp của bạn...</p>
     <div class="progress">
         <div class="progress-bar" id="progressBar"></div>
     </div>
 </div>
 
-<div id="result"></div>
+<div id="resultSection">
+    <p><strong>Cảm ơn bạn đã hoàn thành bài trắc nghiệm của nhóm chúng tôi.</strong></p>
+    <img src="https://i.imgur.com/7yUvePI.jpeg" alt="meme1">
+    <div id="finalResult"></div>
+</div>
 
 </div>
 
 <script>
 
 const questions = [
-"1. Khi làm việc nhóm, bạn thường:",
-"2. Bạn cảm thấy hứng thú nhất khi:",
-"3. Nếu phải chọn một kỹ năng mạnh nhất:",
-"4. Bạn thích môi trường làm việc:",
-"5. Khi gặp vấn đề khó:",
-"6. Bạn muốn tạo ra điều gì cho xã hội:",
-"7. Bạn thích xem nội dung:",
-"8. Trong lớp học bạn thường:",
-"9. Bạn bị thu hút bởi:",
-"10. Bạn thích kiểu công việc:",
-"11. Bạn mong muốn cuộc sống sau này:",
-"12. Nếu có cơ hội, bạn sẽ:"
+"1. Khi làm việc nhóm, bạn thường đảm nhận vai trò nào?",
+"2. Bạn cảm thấy hứng thú nhất khi tham gia hoạt động nào?",
+"3. Khi đối mặt với một vấn đề phức tạp, bạn có xu hướng xử lý như thế nào?",
+"4. Bạn mong muốn môi trường làm việc tương lai ra sao?",
+"5. Bạn thường được người khác nhận xét nổi bật ở điểm nào?",
+"6. Bạn cảm thấy tự tin nhất khi thực hiện nhiệm vụ nào?",
+"7. Bạn quan tâm nhiều hơn đến yếu tố nào trong công việc?",
+"8. Bạn thích làm việc với đối tượng nào nhất?",
+"9. Khi phải đưa ra quyết định quan trọng, bạn dựa vào điều gì?",
+"10. Bạn muốn sản phẩm lao động của mình mang lại điều gì?",
+"11. Bạn có xu hướng học tốt hơn khi nào?",
+"12. Bạn cảm thấy hài lòng nhất khi nào?",
+"13. Bạn ưu tiên yếu tố nào trong tương lai?",
+"14. Nếu có cơ hội lựa chọn tự do, bạn sẽ chọn lĩnh vực nào?",
+"15. Bạn mong muốn công việc của mình phản ánh điều gì?"
 ];
 
 const options = [
-["Lên kế hoạch chiến lược 🧠","Kết nối mọi người 🤝","Đưa ra ý tưởng mới 💡","Thực hành kỹ thuật 🔧"],
-["Giải quyết bài toán khó 📊","Giúp ai đó vượt qua khó khăn ❤️","Thiết kế sản phẩm đẹp 🎨","Khám phá công nghệ mới 🤖"],
-["Tư duy logic 🔍","Giao tiếp 🗣️","Sáng tạo ✨","Thực hành kỹ thuật 🛠️"],
-["Công ty công nghệ 💻","Trường học/bệnh viện 🏥","Studio sáng tạo 🎬","Nhà máy/phòng lab 🔬"],
-["Phân tích kỹ lưỡng 📈","Tìm người hỗ trợ 🤍","Thử cách mới 🌈","Thực nghiệm 🧪"],
-["Ứng dụng thông minh 📱","Giúp cộng đồng 🌍","Tác phẩm nghệ thuật 🎭","Máy móc/thiết bị ⚙️"],
-["Công nghệ 🚀","Phát triển bản thân 📚","Nghệ thuật 🎶","Khoa học 🔬"],
-["Ngồi phân tích 🤓","Tham gia phát biểu 😊","Trang trí bảng 🎨","Làm thí nghiệm 🧪"],
-["AI – Robot 🤖","Tâm lý con người 🧠","Thiết kế – truyền thông 📸","Kỹ thuật máy móc 🔩"],
-["Ổn định – lương cao 💰","Có ý nghĩa xã hội 🤍","Tự do sáng tạo 🌟","Chuyên môn kỹ thuật 🛠️"],
-["Thành đạt 💼","Được yêu quý ❤️","Nổi bật 🌟","Giỏi chuyên môn 🔧"],
-["Lập trình phần mềm 💻","Tham gia hoạt động xã hội 🤝","Làm phim – thiết kế 🎬","Nghiên cứu máy móc 🔬"]
+["Lập kế hoạch và tổ chức công việc một cách logic và khoa học",
+"Kết nối, hỗ trợ và tạo động lực cho các thành viên",
+"Đưa ra ý tưởng sáng tạo và cách tiếp cận mới",
+"Thực hiện các nhiệm vụ kỹ thuật và đảm bảo tính chính xác"],
+["Giải quyết các bài toán và thử thách mang tính phân tích",
+"Tham gia hoạt động hỗ trợ và phát triển con người",
+"Thiết kế, sáng tạo nội dung hoặc sản phẩm nghệ thuật",
+"Khám phá máy móc, công nghệ hoặc quy trình kỹ thuật"],
+["Phân tích nguyên nhân và tìm giải pháp dựa trên dữ liệu",
+"Trao đổi với người khác để tìm phương án phù hợp",
+"Thử nghiệm những cách tiếp cận mới mẻ",
+"Áp dụng kiến thức thực hành để xử lý trực tiếp"],
+["Chuyên nghiệp, hiện đại và có tính công nghệ cao",
+"Nhân văn, gắn kết và có ý nghĩa xã hội",
+"Năng động, sáng tạo và linh hoạt",
+"Kỹ thuật, chuyên sâu và có tính ứng dụng cao"],
+["Khả năng tư duy logic và phân tích",
+"Sự đồng cảm và kỹ năng giao tiếp",
+"Tính sáng tạo và khả năng tưởng tượng",
+"Tính cẩn thận và kỹ năng thực hành"],
+["Phân tích số liệu và hệ thống",
+"Tư vấn và hỗ trợ người khác",
+"Sáng tạo ý tưởng mới",
+"Thao tác kỹ thuật hoặc vận hành thiết bị"],
+["Thu nhập và sự ổn định lâu dài",
+"Giá trị xã hội và đóng góp cho cộng đồng",
+"Sự tự do thể hiện bản thân",
+"Tính chuyên môn và tay nghề cao"],
+["Máy tính và công nghệ",
+"Con người và cộng đồng",
+"Nội dung truyền thông và nghệ thuật",
+"Thiết bị và hệ thống kỹ thuật"],
+["Lý trí và dữ liệu cụ thể",
+"Cảm xúc và tác động xã hội",
+"Sự sáng tạo và trực giác",
+"Kinh nghiệm thực tế và quy trình"],
+["Giải pháp công nghệ hiệu quả",
+"Sự cải thiện chất lượng cuộc sống",
+"Sản phẩm sáng tạo độc đáo",
+"Hệ thống vận hành ổn định"],
+["Khi được phân tích và suy luận logic",
+"Khi được trao đổi và hợp tác",
+"Khi được thử nghiệm ý tưởng mới",
+"Khi được thực hành trực tiếp"],
+["Hoàn thành nhiệm vụ chính xác và hiệu quả",
+"Giúp đỡ người khác đạt được mục tiêu",
+"Hoàn thành sản phẩm mang tính sáng tạo",
+"Khắc phục được lỗi kỹ thuật"],
+["Sự ổn định tài chính",
+"Sự công nhận từ xã hội",
+"Sự tự do cá nhân",
+"Sự phát triển chuyên môn"],
+["Công nghệ và trí tuệ nhân tạo",
+"Giáo dục hoặc tâm lý học",
+"Thiết kế và truyền thông",
+"Kỹ thuật và công nghệ ứng dụng"],
+["Năng lực phân tích",
+"Khả năng kết nối con người",
+"Cá tính sáng tạo",
+"Tay nghề chuyên môn"]
 ];
 
 const form = document.getElementById("quiz");
@@ -148,38 +206,43 @@ questions.forEach((q,index)=>{
     let div=document.createElement("div");
     div.className="question";
     div.innerHTML="<p>"+q+"</p>";
+
     options[index].forEach((opt,i)=>{
         div.innerHTML+=`
         <label>
-        <input type="radio" name="q${index}" value="${i}" required> ${opt}
+        <input type="radio" name="q${index}" value="${i}" onchange="showConfirm(${index})">
+        ${opt}
         </label><br>`;
     });
+
+    div.innerHTML+=`<div class="confirm" id="confirm${index}">Tôi đã ghi nhận lựa chọn của bạn. Bạn có chắc chắn với đáp án này không?</div>`;
     form.appendChild(div);
 });
 
-function showMeme(){
-    for(let i=0;i<12;i++){
+function showConfirm(index){
+    document.getElementById("confirm"+index).style.display="block";
+}
+
+function submitQuiz(){
+
+    for(let i=0;i<15;i++){
         if(!document.querySelector(`input[name="q${i}"]:checked`)){
-            alert("Làm hết câu hỏi đi bà 😭");
+            alert("Vui lòng hoàn thành đầy đủ tất cả câu hỏi trước khi xem kết quả.");
             return;
         }
     }
-    document.getElementById("memeBox").style.display="block";
-}
 
-function calculateResult(){
-    document.getElementById("memeBox").style.display="none";
     document.getElementById("loading").style.display="block";
-
-    let bar=document.getElementById("progressBar");
-    bar.style.width="100%";
+    document.getElementById("progressBar").style.width="100%";
 
     setTimeout(()=>{
+
         document.getElementById("loading").style.display="none";
+        document.getElementById("resultSection").style.display="block";
 
         let tech=0,social=0,creative=0,technical=0;
 
-        for(let i=0;i<12;i++){
+        for(let i=0;i<15;i++){
             let val=document.querySelector(`input[name="q${i}"]:checked`).value;
             if(val==0) tech++;
             else if(val==1) social++;
@@ -190,16 +253,19 @@ function calculateResult(){
         let resultText="";
 
         if(tech>=social && tech>=creative && tech>=technical)
-            resultText="🤖 Bạn hợp ngành Công nghệ – AI – Lập trình.";
+            resultText="Kết quả cho thấy bạn có xu hướng phù hợp với nhóm ngành Công nghệ và Phân tích dữ liệu.";
         else if(social>=tech && social>=creative && social>=technical)
-            resultText="❤️ Bạn hợp ngành Giáo dục – Tâm lý – Y tế – Xã hội.";
+            resultText="Kết quả cho thấy bạn có xu hướng phù hợp với nhóm ngành Giáo dục, Tâm lý và các lĩnh vực xã hội.";
         else if(creative>=tech && creative>=social && creative>=technical)
-            resultText="🎨 Bạn hợp ngành Thiết kế – Truyền thông – Marketing.";
+            resultText="Kết quả cho thấy bạn có xu hướng phù hợp với nhóm ngành Thiết kế, Truyền thông và Sáng tạo nội dung.";
         else
-            resultText="⚙️ Bạn hợp ngành Kỹ thuật – Cơ khí – Công nghệ ứng dụng.";
+            resultText="Kết quả cho thấy bạn có xu hướng phù hợp với nhóm ngành Kỹ thuật và Công nghệ ứng dụng.";
 
-        document.getElementById("result").innerHTML=resultText+"<br><br>🐱 Kết quả chỉ mang tính tham khảo nhaaa!";
-    },3000);
+        document.getElementById("finalResult").innerHTML=
+        "<p><strong>"+resultText+"</strong></p>"+
+        "<img src='https://i.imgur.com/j5q9XGZ.jpeg' alt='meme2'>";
+
+    },4000);
 }
 
 </script>
