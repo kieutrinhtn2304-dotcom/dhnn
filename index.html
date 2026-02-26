@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trắc nghiệm định hướng nghề nghiệp</title>
+
+<style>
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg,#fbc2eb,#a6c1ee);
+    margin:0;
+    padding:0;
+}
+
+.container{
+    max-width:900px;
+    margin:40px auto;
+    background:white;
+    padding:30px;
+    border-radius:20px;
+    box-shadow:0 15px 30px rgba(0,0,0,0.2);
+}
+
+h1{text-align:center;}
+
+.question{
+    margin-bottom:25px;
+}
+
+button{
+    display:block;
+    margin:30px auto;
+    padding:12px 30px;
+    border:none;
+    background:#ff6b81;
+    color:white;
+    font-size:16px;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+button:hover{background:#ff4757;}
+
+#loading{
+    display:none;
+    text-align:center;
+    margin-top:20px;
+}
+
+.progress{
+    width:100%;
+    background:#eee;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:10px;
+}
+
+.progress-bar{
+    width:0%;
+    height:20px;
+    background:#ff6b81;
+    transition:width 3s linear;
+}
+
+#memeBox{
+    display:none;
+    text-align:center;
+    margin-top:20px;
+}
+
+#memeBox img{
+    width:200px;
+    border-radius:15px;
+}
+
+#result{
+    text-align:center;
+    font-size:20px;
+    font-weight:bold;
+    margin-top:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>🐱 Trắc nghiệm định hướng nghề nghiệp siêu nghiêm túc 🐱</h1>
+
+<form id="quiz"></form>
+
+<button onclick="showMeme()">Xem kết quả ✨</button>
+
+<div id="memeBox">
+    <p><b>Bạn đã chắc chưa :)</b></p>
+    <img src="https://i.imgur.com/7yUvePI.jpeg">
+    <br><br>
+    <button onclick="calculateResult()">Chắc rồi 😤</button>
+</div>
+
+<div id="loading">
+    <p>Đang phân tích tính cách của bạn...</p>
+    <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+</div>
+
+<div id="result"></div>
+
+</div>
+
+<script>
+
+const questions = [
+"1. Khi làm việc nhóm, bạn thường:",
+"2. Bạn cảm thấy hứng thú nhất khi:",
+"3. Nếu phải chọn một kỹ năng mạnh nhất:",
+"4. Bạn thích môi trường làm việc:",
+"5. Khi gặp vấn đề khó:",
+"6. Bạn muốn tạo ra điều gì cho xã hội:",
+"7. Bạn thích xem nội dung:",
+"8. Trong lớp học bạn thường:",
+"9. Bạn bị thu hút bởi:",
+"10. Bạn thích kiểu công việc:",
+"11. Bạn mong muốn cuộc sống sau này:",
+"12. Nếu có cơ hội, bạn sẽ:"
+];
+
+const options = [
+["Lên kế hoạch chiến lược 🧠","Kết nối mọi người 🤝","Đưa ra ý tưởng mới 💡","Thực hành kỹ thuật 🔧"],
+["Giải quyết bài toán khó 📊","Giúp ai đó vượt qua khó khăn ❤️","Thiết kế sản phẩm đẹp 🎨","Khám phá công nghệ mới 🤖"],
+["Tư duy logic 🔍","Giao tiếp 🗣️","Sáng tạo ✨","Thực hành kỹ thuật 🛠️"],
+["Công ty công nghệ 💻","Trường học/bệnh viện 🏥","Studio sáng tạo 🎬","Nhà máy/phòng lab 🔬"],
+["Phân tích kỹ lưỡng 📈","Tìm người hỗ trợ 🤍","Thử cách mới 🌈","Thực nghiệm 🧪"],
+["Ứng dụng thông minh 📱","Giúp cộng đồng 🌍","Tác phẩm nghệ thuật 🎭","Máy móc/thiết bị ⚙️"],
+["Công nghệ 🚀","Phát triển bản thân 📚","Nghệ thuật 🎶","Khoa học 🔬"],
+["Ngồi phân tích 🤓","Tham gia phát biểu 😊","Trang trí bảng 🎨","Làm thí nghiệm 🧪"],
+["AI – Robot 🤖","Tâm lý con người 🧠","Thiết kế – truyền thông 📸","Kỹ thuật máy móc 🔩"],
+["Ổn định – lương cao 💰","Có ý nghĩa xã hội 🤍","Tự do sáng tạo 🌟","Chuyên môn kỹ thuật 🛠️"],
+["Thành đạt 💼","Được yêu quý ❤️","Nổi bật 🌟","Giỏi chuyên môn 🔧"],
+["Lập trình phần mềm 💻","Tham gia hoạt động xã hội 🤝","Làm phim – thiết kế 🎬","Nghiên cứu máy móc 🔬"]
+];
+
+const form = document.getElementById("quiz");
+
+questions.forEach((q,index)=>{
+    let div=document.createElement("div");
+    div.className="question";
+    div.innerHTML="<p>"+q+"</p>";
+    options[index].forEach((opt,i)=>{
+        div.innerHTML+=`
+        <label>
+        <input type="radio" name="q${index}" value="${i}" required> ${opt}
+        </label><br>`;
+    });
+    form.appendChild(div);
+});
+
+function showMeme(){
+    for(let i=0;i<12;i++){
+        if(!document.querySelector(`input[name="q${i}"]:checked`)){
+            alert("Làm hết câu hỏi đi bà 😭");
+            return;
+        }
+    }
+    document.getElementById("memeBox").style.display="block";
+}
+
+function calculateResult(){
+    document.getElementById("memeBox").style.display="none";
+    document.getElementById("loading").style.display="block";
+
+    let bar=document.getElementById("progressBar");
+    bar.style.width="100%";
+
+    setTimeout(()=>{
+        document.getElementById("loading").style.display="none";
+
+        let tech=0,social=0,creative=0,technical=0;
+
+        for(let i=0;i<12;i++){
+            let val=document.querySelector(`input[name="q${i}"]:checked`).value;
+            if(val==0) tech++;
+            else if(val==1) social++;
+            else if(val==2) creative++;
+            else technical++;
+        }
+
+        let resultText="";
+
+        if(tech>=social && tech>=creative && tech>=technical)
+            resultText="🤖 Bạn hợp ngành Công nghệ – AI – Lập trình.";
+        else if(social>=tech && social>=creative && social>=technical)
+            resultText="❤️ Bạn hợp ngành Giáo dục – Tâm lý – Y tế – Xã hội.";
+        else if(creative>=tech && creative>=social && creative>=technical)
+            resultText="🎨 Bạn hợp ngành Thiết kế – Truyền thông – Marketing.";
+        else
+            resultText="⚙️ Bạn hợp ngành Kỹ thuật – Cơ khí – Công nghệ ứng dụng.";
+
+        document.getElementById("result").innerHTML=resultText+"<br><br>🐱 Kết quả chỉ mang tính tham khảo nhaaa!";
+    },3000);
+}
+
+</script>
+
+</body>
+</html>
